@@ -43,6 +43,9 @@ double rnorm() {
   return gretl_one_snormal(); 
 }
 
+// rnorm(["mean": 0.0, "sd": 1.0]);
+// ["mean": 0.0, "sd": 1.0].rnorm;
+// Experimental: I'm not sure about this syntax
 double rnorm(double[string] par) {
 	return par["mean"] + par["sd"]*gretl_one_snormal;
 }
@@ -73,13 +76,54 @@ void rnormUnsafe(double * ptr, int len, double mean=0.0, double sd=1.0) {
 	//~ return result;
 //~ }
 
-int[] indexSample(int n) {
-	auto result = new int[n];
-	gretl_rand_int_minmax(result.ptr, n, 0, n-1);
+/* Generate n index values ranging from 0 to n-1 */
+int[] genIndex(long n) {
+	auto result = new int[n.to!int];
+	gretl_rand_int_minmax(result.ptr, n.to!int, 0, to!int(n-1));
 	return result;
 }
 
+/* Generate n index values ranging from start to end
+ * Use case: when you're sampling from part of the sample */
+int[] genIndex(long _n, long start, long end) {
+	int n = _n.to!int;
+	auto result = new int[n];
+	gretl_rand_int_minmax(result.ptr, n, start.to!int, end.to!int);
+	return result;
+}
 
+/* If you want to generate n observations from multiple parts of the sample */
+int[] genIndex(long _n, int[] ind) {
+	int n = _n.to!int;
+	
+	// First, generate the index values to select from ind
+	auto tmp = new int[n];
+	gretl_rand_int_minmax(tmp.ptr, n, 0, n-1);
+	
+	// Now pull those values out of ind and put them in result
+	int[] result;
+	result.reserve(n);
+	foreach(ii; tmp) {
+		result ~= ind[ii];
+	}
+	return result;
+}
+	
+int[] genIndex(int[] ind) {
+	int n = ind.length.to!int;
+	
+	// First, generate the index values to select from ind
+	auto tmp = new int[n];
+	gretl_rand_int_minmax(tmp.ptr, n, 0, n-1);
+	
+	// Now pull those values out of ind and put them in result
+	int[] result;
+	result.reserve(n);
+	foreach(ii; tmp) {
+		result ~= ind[ii];
+	}
+	return result;
+}
 
 extern(C) {
 	double gretl_rand_gamma_one(double shape, double scale);
