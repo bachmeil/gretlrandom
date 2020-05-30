@@ -42,3 +42,5 @@ double[] runif(int n, double min=0.0, double max=1.0)
 void ruinfUnsafe(double * ptr, int len, double min=0.0, double max=1.0)
 ```
 
+# Generating normal double values
+

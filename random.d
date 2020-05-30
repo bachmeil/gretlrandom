@@ -39,37 +39,47 @@ void ruinfUnsafe(double * ptr, int len, double min=0.0, double max=1.0) {
 	gretl_rand_uniform_minmax(ptr, 0, len-1, min, max);
 }
 
-DoubleVector rnorm(int n, double mean=0.0, double sd=1.0) {
-  auto result = DoubleVector(n);
-  gretl_rand_normal_full(result.ptr, 0, n-1, mean, sd);
-  return result;
-}
-
 double rnorm() { 
   return gretl_one_snormal(); 
 }
 
-DoubleVector rmvnorm(GretlMatrix mu, GretlMatrix V) {
-  enforce(mu.cols == 1, "rmvnorm: mu needs to have one column");
-  enforce(mu.rows == V.rows, "rmvnorm: mu and v need to have the same number of rows");
-  enforce(V.rows == V.cols, "rmvnorm: v needs to be square");
-  return DoubleVector(mu + chol(V)*rnorm(mu.rows));
+double rnorm(double[string] par) {
+	return par["mean"] + par["sd"]*gretl_one_snormal;
 }
 
-DoubleVector[] rmvnorm(int n, GretlMatrix mu, GretlMatrix V) {
-	DoubleVector[] result;
-	result.reserve(n);
-	foreach(draw; 0..n) {
-		result ~= rmvnorm(mu, V);
-	}
+double[] rnorm(int n, double mean=0.0, double sd=1.0) {
+	auto result = new Double[n];
+	gretl_rand_normal_full(result.ptr, 0, n-1, mean, sd);
 	return result;
 }
+
+void rnormUnsafe(double * ptr, int len, double mean=0.0, double sd=1.0) {
+	gretl_rand_normal_full(ptr, 0, len-1, mean, sd);
+}
+
+//~ DoubleVector rmvnorm(GretlMatrix mu, GretlMatrix V) {
+  //~ enforce(mu.cols == 1, "rmvnorm: mu needs to have one column");
+  //~ enforce(mu.rows == V.rows, "rmvnorm: mu and v need to have the same number of rows");
+  //~ enforce(V.rows == V.cols, "rmvnorm: v needs to be square");
+  //~ return DoubleVector(mu + chol(V)*rnorm(mu.rows));
+//~ }
+
+//~ DoubleVector[] rmvnorm(int n, GretlMatrix mu, GretlMatrix V) {
+	//~ DoubleVector[] result;
+	//~ result.reserve(n);
+	//~ foreach(draw; 0..n) {
+		//~ result ~= rmvnorm(mu, V);
+	//~ }
+	//~ return result;
+//~ }
 
 int[] indexSample(int n) {
 	auto result = new int[n];
 	gretl_rand_int_minmax(result.ptr, n, 0, n-1);
 	return result;
 }
+
+
 
 extern(C) {
 	double gretl_rand_gamma_one(double shape, double scale);
