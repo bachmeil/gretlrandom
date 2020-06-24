@@ -1,0 +1,11 @@
+# Usage
+
+You need to have Gretl installed. Gretl the GUI program is not sufficient, you'll also need to have the Gretl development libraries installed.
+
+Add 
+
+```
+import gretl.random;
+```
+
+to your program. You have to link against libgretl. On Ubuntu, I do that by adding `-L-lgretl-1.0` to the compilation command when using DMD. I add `-L/usr/local/lib/libgretl-1.0.so` if using LDC, as it can't find libgretl without the full path.
