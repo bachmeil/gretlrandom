@@ -1,0 +1,16 @@
+<!DOCTYPE html><script src="https://cdn.jsdelivr.net/npm/mdme@0.3.0"></script><textarea>
+# Initializing and cleaning up
+
+You have to initialize the random number generation utilities first. If you don't, your program is going to blow up on you. So, before you call any of these functions, you need to add this line to your program:
+
+```
+randInit();
+```
+
+I'm not sure that it's necessary, but you should add this line after you're done with the RNG functions:
+
+```
+randFree();
+```
+
+That does whatever cleanup is necessary. I've never bothered to dig into the Gretl code to see what it does (mainly because I've never had a reason to do so).
