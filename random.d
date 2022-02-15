@@ -1,5 +1,5 @@
 module gretl.random;
-import std.conv;
+import std.conv, std.range, std.stdio;
 
 void randInit() {
 	gretl_rand_init();
@@ -21,8 +21,9 @@ uint uniformInt() {
 	return gretl_rand_int();
 }
 
+/* Returns uint up to k */
 uint uniformInt(uint k) { 
-  return gretl_rand_int_max(k);
+  return gretl_rand_int_max(k+1);
 }
 
 double runif() { 
@@ -51,7 +52,7 @@ double rnorm(double[string] par) {
 }
 
 double[] rnorm(int n, double mean=0.0, double sd=1.0) {
-	auto result = new Double[n];
+	auto result = new double[n];
 	gretl_rand_normal_full(result.ptr, 0, n-1, mean, sd);
 	return result;
 }
@@ -137,54 +138,77 @@ double rf(int v1, int v2) {
 	return result[0];
 }
 
-DoubleVector rf(int n, int v1, int v2) {
-	auto result = DoubleVector(n);
-	gretl_rand_F(result.ptr, 0, n, v1, v2);
-	return result;
-}
+//~ DoubleVector rf(int n, int v1, int v2) {
+	//~ auto result = DoubleVector(n);
+	//~ gretl_rand_F(result.ptr, 0, n, v1, v2);
+	//~ return result;
+//~ }
 
 double rgamma(double shape, double scale) {
 	return gretl_rand_gamma_one(shape, scale);
 }
 
-DoubleVector rgamma(int k, double shape, double scale) {
-	auto result = DoubleVector(k);
-	foreach(ii; 0..k) {
-		result[ii] = rgamma(shape, scale);
-	}
-	return result;
-}
+//~ DoubleVector rgamma(int k, double shape, double scale) {
+	//~ auto result = DoubleVector(k);
+	//~ foreach(ii; 0..k) {
+		//~ result[ii] = rgamma(shape, scale);
+	//~ }
+	//~ return result;
+//~ }
 
 /* This avoids allocation completely.
  * Main use is when you want to reuse an array.
  * Can be used with a GretlMatrix (completely avoiding the GC),
  * RMatrix (allocated by R), or DoubleMatrix (garbage collected).
  */
-void rgamma(GretlMatrix gm, double shape, double scale) {
-	foreach(ii; 0..gm.rows) {
-		gm[ii,0] = gretl_rand_gamma_one(shape, scale);
+//~ void rgamma(GretlMatrix gm, double shape, double scale) {
+	//~ foreach(ii; 0..gm.rows) {
+		//~ gm[ii,0] = gretl_rand_gamma_one(shape, scale);
+	//~ }
+//~ }
+
+/* GSL implementation */
+int[] shuffleIndex(int[] index) {
+	int[] result = index.dup;
+	foreach(ii; iota(to!int(result.length-1), -1, -1)) {
+		auto jj = uniformInt(ii.to!uint);
+		auto tmp = result[ii];
+		result[ii] = result[jj];
+		result[jj] = tmp;
 	}
+	return result;
+}
+
+int[] shuffleIndex(int n) {
+	int[] result = iota(0, n);
+	foreach(ii; iota(to!int(result.length-1), -1, -1)) {
+		auto jj = uniformInt(ii.to!uint);
+		auto tmp = result[ii];
+		result[ii] = result[jj];
+		result[jj] = tmp;
+	}
+	return result;
 }
 
 /*
  * S: Scale matrix
  * v: Degrees of freedom
  */
-GretlMatrix * invWishartUnsafe(GretlMatrix S, int v) {
-	GretlMatrix * gm;
-	int * err;
-	return inverse_wishart_matrix(&S, v, err);
-}
+//~ GretlMatrix * invWishartUnsafe(GretlMatrix S, int v) {
+	//~ GretlMatrix * gm;
+	//~ int * err;
+	//~ return inverse_wishart_matrix(&S, v, err);
+//~ }
 
-DoubleMatrix invWishart(GretlMatrix S, int v) {
-	return DoubleMatrix(invWishartUnsafe(S, v));
-}
+//~ DoubleMatrix invWishart(GretlMatrix S, int v) {
+	//~ return DoubleMatrix(invWishartUnsafe(S, v));
+//~ }
 
 extern (C) {
   void gretl_rand_init();
   void gretl_rand_free();
   void gretl_rand_set_seed(uint seed);
-  void gretl_rand_set_multi_seed(const GretlMatrix * seed);
+  //~ void gretl_rand_set_multi_seed(const GretlMatrix * seed);
   uint gretl_rand_int();
   uint gretl_rand_int_max(uint m);
 	int gretl_rand_int_minmax(int *a, int n, int min, int max);
