@@ -180,7 +180,7 @@ int[] shuffleIndex(int[] index) {
 }
 
 int[] shuffleIndex(int n) {
-	int[] result = iota(0, n);
+	int[] result = iota(0, n).array;
 	foreach(ii; iota(to!int(result.length-1), -1, -1)) {
 		auto jj = uniformInt(ii.to!uint);
 		auto tmp = result[ii];
